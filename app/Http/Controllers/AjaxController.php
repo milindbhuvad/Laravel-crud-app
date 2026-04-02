@@ -2,18 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PostModel as Post;
 use Illuminate\Http\Request;
+use App\Models\PostModel as Post;
 
-class PostController extends Controller
+class AjaxController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         $posts = Post::all();
-        return view('posts.index', compact('posts'));
+        return view('posts-ajax.index', compact('posts'));
     }
 
     /**
@@ -21,26 +18,28 @@ class PostController extends Controller
      */
     public function create()
     {
-        return view('posts.create');
+        return view('posts-ajax.create');
     }
 
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-    {        
+    {
         $request->validate([
             'title' => 'required',
             'description' => 'required',
         ]);
+
         Post::create($request->all());
-        return redirect()->route('posts.index')->with('success', 'Post created successfully.');
+
+        return response()->json(['success' => 'Post created successfully.']);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Post $post)
+    public function show(string $id)
     {
         //
     }
@@ -48,9 +47,9 @@ class PostController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Post $post)
+    public function edit(Post $posts_ajax)
     {
-        return view('posts.edit', compact('post'));
+        return view('posts-ajax.edit', compact('posts_ajax'));
     }
 
     /**
@@ -63,15 +62,21 @@ class PostController extends Controller
             'description' => 'required',
         ]);
         $post->update($request->all());
-        return redirect()->route('posts.index')->with('success', 'Post updated successfully.');
+        return response()->json(['success' => 'Post updated successfully.']);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Post $post)
+    public function destroy($id)
     {
-        $post->delete();
-        return redirect()->route('posts.index');
+        $post = Post::find($id);
+        if ($post) {
+            $post->delete();
+            // return response()->json(['success' => 'Post deleted successfully.']);
+            return redirect()->route('posts-ajax.index')->with('success', 'Post deleted successfully.');
+        } else {
+            return redirect()->route('posts-ajax.index')->with('error', 'Post not found.');
+        }
     }
 }
